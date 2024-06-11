@@ -1,6 +1,6 @@
 const YouBar = ({ you }) => {
   return (
-    <div className="bg-white p-3 flex items-center justify-between min-h-[90px]">
+    <div className="bg-white p-3 flex items-center justify-between min-h-[90px] relative">
       <div className="flex items-center">
         <div
           className={`${
@@ -29,6 +29,14 @@ const YouBar = ({ you }) => {
           XP: <span className="text-gray-500">{you.xp}</span>
         </span>
       </div>
+      {you.class.currentHealth && (
+        <div className="absolute -bottom-11">
+          <h1>Health: {you.class.currentHealth}</h1>
+          <h1>
+            {you.class.resource.type}: {you.class.resource.amount}
+          </h1>
+        </div>
+      )}
     </div>
   );
 };
