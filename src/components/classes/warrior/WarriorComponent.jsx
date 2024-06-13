@@ -8,32 +8,44 @@ import BasicSprite from "../../BasicSprite";
 
 import { initialWarriorState, warriorStateReducer } from "./WarriorState";
 
-const WarriorComponent = ({ user, enemies }) => {
+const WarriorComponent = ({ user, enemies, setEnemies }) => {
   const [targettedEnemy, setTargettedEnemy] = useState(null);
-  const [warriorState, dispath] = useReducer(
+  const [warriorState, dispatch] = useReducer(
     warriorStateReducer,
     initialWarriorState
   );
 
   const handleAttack = () => {
-    dispath({ type: "ATTACK" });
+    dispatch({ type: "ATTACK" });
+  };
+
+  const handleAttacked = () => {
+    dispatch({ type: "ATTACKED" });
   };
 
   const handleSlam = () => {
-    dispath({ type: "SLAM" });
+    dispatch({ type: "SLAM" });
+  };
+
+  const handleSlammed = () => {
+    dispatch({ type: "SLAMMED" });
   };
 
   const handleVictoryRush = () => {
-    dispath({ type: "VICTORY_RUSH" });
+    dispatch({ type: "VICTORY_RUSH" });
+  };
+
+  const handleVictoryRushed = () => {
+    dispatch({ type: "VICTORY_RUSHED" });
   };
 
   const handleAvatar = () => {
-    dispath({ type: "AVATAR" });
+    dispatch({ type: "AVATAR" });
   };
 
   return (
     <div>
-      <UserInfo user={user} />
+      <UserInfo user={user} classState={warriorState} />
       <Message
         content={[
           <h1 className="mb-5 text-center">
@@ -49,6 +61,29 @@ const WarriorComponent = ({ user, enemies }) => {
             {enemies.map((enemy, index) => (
               <div
                 key={index}
+                onClick={() => {
+                  if (warriorState.attack.isTargetting) {
+                    console.log(`${enemy.name} is being attacked!`);
+                    setEnemies(
+                      enemies.map((_enemy) =>
+                        _enemy.name === enemy.name
+                          ? { ..._enemy, health: _enemy.health - 50 }
+                          : _enemy
+                      )
+                    );
+                    handleAttacked();
+                  }
+
+                  if (warriorState.slam.isTargetting) {
+                    console.log(`${enemy.name} is being slammed!`);
+                    handleSlammed();
+                  }
+
+                  if (warriorState.victoryRush.isTargetting) {
+                    console.log(`${enemy.name} is being victory rushed!`);
+                    handleVictoryRushed();
+                  }
+                }}
                 className="flex flex-col justify-center items-center mx-3"
               >
                 <BasicSprite
@@ -64,10 +99,26 @@ const WarriorComponent = ({ user, enemies }) => {
       />
       <Options
         options={[
-          { message: "Attack!", onClick: handleAttack },
-          { message: "Slam", onClick: handleSlam },
-          { message: "Victory Rush", onClick: handleVictoryRush },
-          { message: "Avatar", onClick: handleAvatar },
+          {
+            message: "Attack!",
+            onClick: handleAttack,
+            disabled: warriorState.attack.isDisabled,
+          },
+          {
+            message: "Slam",
+            onClick: handleSlam,
+            disabled: warriorState.slam.isDisabled,
+          },
+          {
+            message: "Victory Rush",
+            onClick: handleVictoryRush,
+            disabled: warriorState.victoryRush.isDisabled,
+          },
+          {
+            message: "Avatar",
+            onClick: handleAvatar,
+            disabled: warriorState.avatar.isDisabled,
+          },
         ]}
       />
     </div>

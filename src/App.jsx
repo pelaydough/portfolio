@@ -191,7 +191,13 @@ function App() {
 
   if (floor === 5) {
     if (user.class.name === "Warrior") {
-      return <WarriorComponent user={user} enemies={enemies} />;
+      return (
+        <WarriorComponent
+          user={user}
+          enemies={enemies}
+          setEnemies={setEnemies}
+        />
+      );
     }
 
     if (user.class.name === "Mage") {

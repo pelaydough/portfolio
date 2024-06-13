@@ -15,7 +15,11 @@ const Options = ({ options }) => {
         return (
           <div
             key={option.message}
-            className="min-h-[90px] flex justify-center items-center cursor-pointer hover:bg-gray-300"
+            className={`${
+              option.disabled
+                ? "min-h-[90px] flex justify-center items-center cursor-not-allowed bg-gray-400"
+                : "min-h-[90px] flex justify-center items-center cursor-pointer hover:bg-gray-300"
+            }`}
             onClick={() => option.onClick()}
           >
             <p>{option.message}</p>
