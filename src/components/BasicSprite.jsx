@@ -1,6 +1,13 @@
-const BasicSprite = () => {
+const BasicSprite = ({ targetting, setTargettedEnemy, enemy }) => {
   return (
-    <div className="w-12 h-16 grid grid-cols-12 grid-rows-12">
+    <div
+      className="w-12 h-16 grid grid-cols-12 grid-rows-12 p-2 relative"
+      onClick={() => {
+        console.log(`Just set ${enemy.name} as the target!`);
+        setTargettedEnemy(enemy);
+      }}
+    >
+      <div className="absolute bg-black w-full h-full bg-opacity-0"></div>
       {/* Row 1 */}
       <div className="col-span-3"></div>
       <div className="col-span-6 bg-black"></div>
