@@ -1,6 +1,10 @@
-const BasicSprite = ({ targetting, setTargettedEnemy, enemy }) => {
+const BasicSprite = ({ targetting }) => {
   return (
-    <div className="w-12 h-16 grid grid-cols-12 grid-rows-12 p-2 relative">
+    <div
+      className={`${
+        targetting && "cursor-pointer"
+      } w-12 h-16 grid grid-cols-12 grid-rows-12 p-2 relative`}
+    >
       <div className="absolute bg-black w-full h-full bg-opacity-0"></div>
       {/* Row 1 */}
       <div className="col-span-3"></div>

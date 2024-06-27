@@ -1,4 +1,4 @@
-import { useState, useReducer } from "react";
+import { useState, useReducer, useEffect } from "react";
 
 import UserInfo from "../../UserInfo";
 import Message from "../../Message";
@@ -15,32 +15,106 @@ const WarriorComponent = ({ user, enemies, setEnemies }) => {
     initialWarriorState
   );
 
+  const handleKeyDown = (event) => {
+    switch (event.key) {
+      case "q":
+        handleAttack();
+        return;
+      case "w":
+        handleSlam();
+        return;
+      case "e":
+        handleVictoryRush();
+        return;
+      case "r":
+        handleAvatar();
+        return;
+      default:
+        return;
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  });
+
   const handleAttack = () => {
-    dispatch({ type: "ATTACK" });
+    if (!warriorState.attack.isOnCooldown && !warriorState.attack.isDisabled) {
+      dispatch({ type: "ATTACK" });
+    }
   };
 
   const handleAttacked = () => {
-    dispatch({ type: "ATTACKED" });
+    if (!warriorState.attack.isOnCooldown && !warriorState.attack.isDisabled) {
+      dispatch({ type: "ATTACKED" });
+
+      setTimeout(() => {
+        dispatch({ type: "ATTACK_OFF_COOLDOWN" });
+      }, warriorState.attack.cooldown * 1000);
+    }
   };
 
   const handleSlam = () => {
-    dispatch({ type: "SLAM" });
+    if (
+      !warriorState.slam.isOnCooldown &&
+      !warriorState.slam.isDisabled &&
+      warriorState.resource.amount >= 20
+    ) {
+      dispatch({ type: "SLAM" });
+    }
   };
 
   const handleSlammed = () => {
-    dispatch({ type: "SLAMMED" });
+    if (!warriorState.slam.isOnCooldown && !warriorState.slam.isDisabled) {
+      dispatch({ type: "SLAMMED" });
+
+      setTimeout(() => {
+        dispatch({ type: "SLAM_OFF_COOLDOWN" });
+      }, warriorState.slam.cooldown * 1000);
+    }
   };
 
   const handleVictoryRush = () => {
-    dispatch({ type: "VICTORY_RUSH" });
+    if (
+      !warriorState.victoryRush.isOnCooldown &&
+      !warriorState.victoryRush.isDisabled
+    ) {
+      dispatch({ type: "VICTORY_RUSH" });
+    }
   };
 
   const handleVictoryRushed = () => {
-    dispatch({ type: "VICTORY_RUSHED" });
+    if (
+      !warriorState.victoryRush.isOnCooldown &&
+      !warriorState.victoryRush.isDisabled
+    ) {
+      dispatch({ type: "VICTORY_RUSHED" });
+
+      setTimeout(() => {
+        dispatch({ type: "VICTORY_RUSH_OFF_COOLDOWN" });
+      }, warriorState.victoryRush.cooldown * 1000);
+    }
   };
 
   const handleAvatar = () => {
-    dispatch({ type: "AVATAR" });
+    if (
+      !warriorState.avatar.isActive &&
+      !warriorState.avatar.isDisabled &&
+      !warriorState.avatar.isOnCooldown
+    ) {
+      dispatch({ type: "AVATAR" });
+
+      setTimeout(() => {
+        dispatch({ type: "AVATAR_TIMEOUT" });
+      }, warriorState.avatar.duration * 1000);
+
+      setTimeout(() => {
+        dispatch({ type: "AVATAR_OFF_COOLDOWN" });
+      }, warriorState.avatar.cooldown * 1000);
+    }
   };
 
   return (
@@ -67,7 +141,11 @@ const WarriorComponent = ({ user, enemies, setEnemies }) => {
                     setEnemies(
                       enemies.map((_enemy) =>
                         _enemy.name === enemy.name
-                          ? { ..._enemy, health: _enemy.health - 50 }
+                          ? {
+                              ..._enemy,
+                              health:
+                                _enemy.health - warriorState.attack.damage,
+                            }
                           : _enemy
                       )
                     );
@@ -76,20 +154,43 @@ const WarriorComponent = ({ user, enemies, setEnemies }) => {
 
                   if (warriorState.slam.isTargetting) {
                     console.log(`${enemy.name} is being slammed!`);
+                    setEnemies(
+                      enemies.map((_enemy) =>
+                        _enemy.name === enemy.name
+                          ? {
+                              ..._enemy,
+                              health: _enemy.health - warriorState.slam.damage,
+                            }
+                          : _enemy
+                      )
+                    );
                     handleSlammed();
                   }
 
                   if (warriorState.victoryRush.isTargetting) {
                     console.log(`${enemy.name} is being victory rushed!`);
+                    setEnemies(
+                      enemies.map((_enemy) =>
+                        _enemy.name === enemy.name
+                          ? {
+                              ..._enemy,
+                              health:
+                                _enemy.health - warriorState.victoryRush.damage,
+                            }
+                          : _enemy
+                      )
+                    );
                     handleVictoryRushed();
                   }
                 }}
                 className="flex flex-col justify-center items-center mx-3"
               >
                 <BasicSprite
-                  targetting={warriorState.targetting}
-                  setTargettedEnemy={setTargettedEnemy}
-                  enemy={enemy}
+                  targetting={
+                    warriorState.attack.isTargetting ||
+                    warriorState.slam.isTargetting ||
+                    warriorState.victoryRush.isTargetting
+                  }
                 />
                 <span>HP: {enemy.health}</span>
               </div>
@@ -102,22 +203,40 @@ const WarriorComponent = ({ user, enemies, setEnemies }) => {
           {
             message: "Attack!",
             onClick: handleAttack,
-            disabled: warriorState.attack.isDisabled,
+            cooldown: warriorState.attack.cooldown,
+            remainingCooldown: warriorState.attack.remainingCooldown,
+            disabled:
+              warriorState.attack.isDisabled ||
+              warriorState.attack.isOnCooldown,
           },
           {
             message: "Slam",
             onClick: handleSlam,
-            disabled: warriorState.slam.isDisabled,
+            cooldown: warriorState.slam.cooldown,
+            remainingCooldown: warriorState.slam.remainingCooldown,
+            disabled:
+              warriorState.slam.isDisabled ||
+              warriorState.resource.amount < 20 ||
+              warriorState.slam.isOnCooldown,
           },
           {
-            message: "Victory Rush",
+            message: ["Victory", "Rush"],
             onClick: handleVictoryRush,
-            disabled: warriorState.victoryRush.isDisabled,
+            cooldown: warriorState.victoryRush.cooldown,
+            remainingCooldown: warriorState.victoryRush.remainingCooldown,
+            disabled:
+              warriorState.victoryRush.isDisabled ||
+              warriorState.victoryRush.isOnCooldown,
           },
           {
             message: "Avatar",
             onClick: handleAvatar,
-            disabled: warriorState.avatar.isDisabled,
+            cooldown: warriorState.avatar.cooldown,
+            remainingCooldown: warriorState.avatar.remainingCooldown,
+            disabled:
+              warriorState.avatar.isDisabled ||
+              warriorState.avatar.isActive ||
+              warriorState.avatar.isOnCooldown,
           },
         ]}
       />
